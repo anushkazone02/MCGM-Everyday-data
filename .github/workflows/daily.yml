@@ -2,9 +2,11 @@ name: Daily MCGM Weather Collection
 
 on:
   schedule:
-    # Runs every day at 08:40 IST (03:10 UTC)
+    # Run every day at 08:40 IST (03:10 UTC)
     - cron: '10 3 * * *'
-
+    # Weekly heartbeat at Sunday 00:00 UTC to keep the job active
+    # (GitHub throttles scheduled jobs in inactive repos)
+    - cron: '0 0 * * 0'
   workflow_dispatch:
 
 permissions:
@@ -13,7 +15,6 @@ permissions:
 jobs:
   collect:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -30,20 +31,33 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run scraper
-        run: |
-          python fetch_mcgm.py
+      - name: Run MCGM data collector
+        run: python fetch_mcgm.py
 
       - name: Commit and push new data
+        # Run this step even if the script fails, so we always push a heartbeat commit
+        if: always()
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          git add daily_data/
-
+          
+          # Create/update heartbeat file so GitHub sees activity
+          mkdir -p .github
+          echo "Last collection attempt: $(date -u)" > .github/last_run.txt
+          
+          # Stage all changes
+          git add .github/last_run.txt daily_data/
+          
+          # Commit if there are changes, otherwise skip
           if git diff --cached --quiet; then
-            echo "No changes to commit."
+            echo "No new data to commit."
           else
-            git commit -m "Daily MCGM rainfall update"
+            git commit -m "Daily MCGM rainfall update: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
             git push
           fi
+
+      - name: Report status
+        if: always()
+        run: |
+          echo "Workflow completed at $(date -u)"
+          echo "View details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
