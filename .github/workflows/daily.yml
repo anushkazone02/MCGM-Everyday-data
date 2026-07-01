@@ -3,7 +3,7 @@ name: Daily MCGM Weather Collection
 on:
   schedule:
     # Run every day at 08:40 IST (03:10 UTC)
-    - cron: '10 3 * * *'
+    - cron: '45 5 * * *'  # NEW: 11:15 IST
     # Weekly heartbeat at Sunday 00:00 UTC to keep the job active
     # (GitHub throttles scheduled jobs in inactive repos)
     - cron: '0 0 * * 0'
