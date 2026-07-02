@@ -2,7 +2,7 @@ name: Test 24-Hour Rainfall Update Schedule
 
 on:
   schedule:
-    - cron: '0 * * * *'
+    - cron: '17 * * * *'
   workflow_dispatch:
 
 permissions:
