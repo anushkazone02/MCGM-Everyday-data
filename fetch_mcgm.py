@@ -82,7 +82,7 @@ for i, station in enumerate(stations):
         # Extract weather details
         details = weather.get("dummyTestRaingaugeDataDetails", {})
         
-        # Append record
+        # Append record with ALL rolling rainfall windows
         records.append({
             "collection_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "station_id": station_id,
@@ -91,11 +91,17 @@ for i, station in enumerate(stations):
             "longitude": station.get("longitude"),
             "observation_time": details.get("timerecorded"),
             "rain_current_mm": details.get("rain"),
+            "rain_1hr_mm": weather.get("avgRainOneHourAWS"),
+            "rain_3hr_mm": weather.get("avgRainThreeHourAWS"),
+            "rain_6hr_mm": weather.get("avgRainSixHourAWS"),
+            "rain_12hr_mm": weather.get("avgRainTwelveHourAWS"),
             "rain_24hr_mm": weather.get("avgRainTwentyFourHourAWS"),
             "temperature": details.get("tempOut"),
             "humidity": details.get("outHumidity"),
             "pressure": details.get("bar"),
-            "wind_speed": details.get("windSpeed")
+            "wind_speed": details.get("windSpeed"),
+            "wind_dir": details.get("windDir"),
+            "heat_index": details.get("heatIndex")
         })
     
     except requests.exceptions.Timeout:
@@ -155,4 +161,12 @@ except Exception as e:
 print("\n" + "=" * 70)
 print("✓ SUCCESS - Data collection complete")
 print("=" * 70)
+print(f"\nColumns collected:")
+print(f"  - rain_current_mm (instant rainfall)")
+print(f"  - rain_1hr_mm (rolling 1-hour)")
+print(f"  - rain_3hr_mm (rolling 3-hour)")
+print(f"  - rain_6hr_mm (rolling 6-hour)")
+print(f"  - rain_12hr_mm (rolling 12-hour)")
+print(f"  - rain_24hr_mm (rolling 24-hour)")
+print(f"\nPlus: temperature, humidity, pressure, wind_speed, wind_dir, heat_index")
 sys.exit(0)
