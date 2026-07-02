@@ -2,8 +2,7 @@ name: Test 24-Hour Rainfall Update Schedule
 
 on:
   schedule:
-    # Run every hour to track when the 24-hour value resets/updates
-    - cron: '0 * * * *'  # Every hour at :00 minutes
+    - cron: '0 * * * *'
   workflow_dispatch:
 
 permissions:
