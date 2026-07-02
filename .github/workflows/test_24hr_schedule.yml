@@ -1,0 +1,40 @@
+name: Test 24-Hour Rainfall Update Schedule
+
+on:
+  schedule:
+    # Run every hour to track when the 24-hour value resets/updates
+    - cron: '0 * * * *'  # Every hour at :00 minutes
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install requests
+
+      - name: Run 24-hour update test
+        run: python test_24hr_update.py
+
+      - name: Commit logs
+        if: always()
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          
+          # Commit the new test log files
+          git add 24hr_test_log_*.json || echo "No new logs"
+          git commit -m "Hourly 24-hour rainfall test: $(date -u)" || echo "No changes"
+          git push
