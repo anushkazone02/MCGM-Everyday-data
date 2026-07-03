@@ -1,4 +1,5 @@
 import requests
+import time
 import pandas as pd
 import os
 import sys
@@ -19,25 +20,43 @@ os.makedirs("daily_data", exist_ok=True)
 # ============================================================================
 # STEP 1: Fetch Station List
 # ============================================================================
+# ============================================================================
+# STEP 1: Fetch Station List (with retry logic)
+# ============================================================================
 try:
     print("\n[1/3] Fetching station list...")
-    response = requests.post(STATIONS_URL, headers=HEADERS, timeout=30)
-    response.raise_for_status()
-    stations_raw = response.json()
+    max_retries = 3
+    retry_count = 0
+    stations = None
     
-    # Handle both dict and list API responses
-    if isinstance(stations_raw, dict):
-        stations = stations_raw.get('data', stations_raw.get('result', []))
-    else:
-        stations = stations_raw
-    
-    if not stations or len(stations) == 0:
-        raise ValueError(f"API returned empty or invalid response: {stations_raw}")
-    
-    print(f"✓ Fetched {len(stations)} stations")
+    while retry_count < max_retries and stations is None:
+        try:
+            response = requests.post(STATIONS_URL, headers=HEADERS, timeout=60)
+            response.raise_for_status()
+            stations_raw = response.json()
+            
+            # Handle both dict and list API responses
+            if isinstance(stations_raw, dict):
+                stations = stations_raw.get('data', stations_raw.get('result', []))
+            else:
+                stations = stations_raw
+            
+            if not stations or len(stations) == 0:
+                raise ValueError(f"API returned empty response")
+            
+            print(f"✓ Fetched {len(stations)} stations")
+            break
+            
+        except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
+            retry_count += 1
+            if retry_count < max_retries:
+                print(f"⚠ Timeout/Connection error, retry {retry_count}/{max_retries}...")
+                time.sleep(5)  # Wait 5 seconds before retry
+            else:
+                raise
     
 except requests.exceptions.Timeout:
-    print("✗ ERROR: Request timeout while fetching stations")
+    print("✗ ERROR: Request timeout while fetching stations (after retries)")
     sys.exit(1)
 except requests.exceptions.HTTPError as e:
     print(f"✗ ERROR: HTTP {e.response.status_code} while fetching stations")
