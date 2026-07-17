@@ -1,0 +1,19 @@
+{
+  "test_start": "2026-07-17 19:31:46",
+  "readings": [
+    {
+      "timestamp": "2026-07-17 19:31:47",
+      "station": "Colaba",
+      "station_id": 5,
+      "observation_time": "2026-07-18 00:45:00.0",
+      "rain_24hr_mm": "1.6"
+    },
+    {
+      "timestamp": "2026-07-17 19:31:48",
+      "station": "Santacruz",
+      "station_id": 29,
+      "observation_time": "2026-07-18 00:45:00.0",
+      "rain_24hr_mm": "5.59"
+    }
+  ]
+}
